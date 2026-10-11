@@ -1,3 +1,26 @@
+## [3.3.1](https://github.com/fruggr/zendesk-mcp-server/compare/v3.3.0...v3.3.1) (2026-10-11)
+
+### Bug Fixes
+
+* **validation:** readable parameter errors instead of raw zod JSON, and reject unknown nested keys ([#367](https://github.com/fruggr/zendesk-mcp-server/issues/367)) ([f9c288f](https://github.com/fruggr/zendesk-mcp-server/commit/f9c288fbc34cb65ae00aeeb453c4acf63bcb4733)), closes [#206](https://github.com/fruggr/zendesk-mcp-server/issues/206)
+
+<details>
+<summary>🔧 Internal changes (chore, ci, build, refactor, tests, docs…)</summary>
+
+### Chores
+
+* **deps:** update dependency msw to v3 ([#352](https://github.com/fruggr/zendesk-mcp-server/issues/352)) ([2b83e0d](https://github.com/fruggr/zendesk-mcp-server/commit/2b83e0d0bd5150a9a20678ff0b0fb1cd7cab3f1e))
+* **deps:** update pnpm to v12.10.0 ([#368](https://github.com/fruggr/zendesk-mcp-server/issues/368)) ([40237c7](https://github.com/fruggr/zendesk-mcp-server/commit/40237c700570be1121ac4c29b9fb69eafc624fcf))
+
+### Code Refactoring
+
+* **auth:** update mcp sdk and delegate the /mcp audience check to it ([#366](https://github.com/fruggr/zendesk-mcp-server/issues/366)) ([8ec4b85](https://github.com/fruggr/zendesk-mcp-server/commit/8ec4b851498922ded734ea4ca9aa2ff89264b9fb))
+
+### Tests
+
+* type-check the test suite ([#364](https://github.com/fruggr/zendesk-mcp-server/issues/364)) ([a6948f3](https://github.com/fruggr/zendesk-mcp-server/commit/a6948f39582775a5af54871ae4559bed531d00b4)), references [#352](https://github.com/fruggr/zendesk-mcp-server/issues/352) [#365](https://github.com/fruggr/zendesk-mcp-server/issues/365) [#352](https://github.com/fruggr/zendesk-mcp-server/issues/352)
+</details>
+
 ## [3.3.0](https://github.com/fruggr/zendesk-mcp-server/compare/v3.2.1...v3.3.0) (2026-10-10)
 
 ### Features
