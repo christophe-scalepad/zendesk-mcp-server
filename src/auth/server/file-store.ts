@@ -14,13 +14,22 @@ import { createStartupError, errnoCode, STARTUP_DOCS } from '../../utils/startup
 /**
  * The key-value contract the authorization server stores its sealed records in.
  * Values are opaque strings (JWEs); `ttlMs` makes a record expire. A new backend
- * (Redis, a database) implements this and nothing else: the store is not
- * pluggable today, deliberately (ADR, Storage).
+ * (Redis, a database) implements this and nothing else: the sealing, hashing
+ * and indexing sit above it (ADR, Storage).
  */
 export interface RecordStore {
   get(key: string): Promise<string | undefined>;
   set(key: string, value: string, ttlMs?: number): Promise<void>;
   delete(key: string): Promise<void>;
+}
+
+/**
+ * The contract plus the lifecycle a networked backend carries: the transport
+ * closes its socket on shutdown. The local backends close nothing.
+ */
+export interface CloseableStore extends RecordStore {
+  /** Idempotent. Safe to call twice. */
+  close(): Promise<void>;
 }
 
 /** One record: its value and, when it expires, the epoch ms it does. */
@@ -41,7 +50,7 @@ const isLive = (entry: StoredEntry, now: number): boolean =>
 export const createMemoryStore = (
   entries: Map<string, StoredEntry> = new Map(),
   onChange: () => void = () => undefined,
-): RecordStore => ({
+): CloseableStore => ({
   get: async (key) => {
     const entry = entries.get(key);
     return entry && isLive(entry, Date.now()) ? entry.v : undefined;
@@ -53,6 +62,7 @@ export const createMemoryStore = (
   delete: async (key) => {
     if (entries.delete(key)) onChange();
   },
+  close: async () => undefined,
 });
 
 const isEntry = (value: unknown): value is StoredEntry =>
@@ -133,7 +143,7 @@ const assertWritable = (path: string): void => {
  * over `keyv-file`, whose plain `writeFile` can truncate the file on a crash and
  * whose loader then silently starts empty. Single process only (ADR, Storage).
  */
-export const createFileStore = (path: string): RecordStore => {
+export const createFileStore = (path: string): CloseableStore => {
   assertWritable(path);
   const entries = load(path);
   return createMemoryStore(entries, () => persist(path, entries));

@@ -2,8 +2,14 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { CompactEncrypt, compactDecrypt, decodeProtectedHeader } from 'jose';
 import type { Adapter, AdapterFactory, AdapterPayload } from 'oidc-provider';
-import { createFileStore, createMemoryStore, type RecordStore } from './file-store';
+import {
+  type CloseableStore,
+  createFileStore,
+  createMemoryStore,
+  type RecordStore,
+} from './file-store';
 import type { KeyRing } from './keys';
+import { createValkeyStore } from './valkey-store';
 
 /**
  * Models that must survive a restart. Everything else (sessions, interactions,
@@ -194,13 +200,19 @@ export const createAdapterFactory = (stores: AdapterStores, ring: KeyRing): Adap
 };
 
 /**
- * Open the persistent store named by `--oauth-store`: `file://` (the default)
- * or `memory://` (tests, throwaway runs). Another backend means implementing
- * `RecordStore`; the ADR records why the store is not pluggable yet.
+ * Open the persistent store named by `--oauth-store`: `file://` (the default),
+ * `valkey://` / `valkeys://` (TLS), or `memory://` (tests, throwaway runs). The
+ * Valkey backend connects before it returns, so an unreachable server stops
+ * startup rather than failing the first sign-in; `close()` drops its socket.
+ * Another backend means implementing `RecordStore`; the ADR records why the
+ * store stayed file-only until now.
  */
-export const openStore = (uri: string): RecordStore => {
+export const openStore = async (uri: string): Promise<CloseableStore> => {
   const { protocol } = new URL(uri);
   if (protocol === 'memory:') return createMemoryStore();
   if (protocol === 'file:') return createFileStore(fileURLToPath(uri));
-  throw new Error(`Unsupported OAuth store scheme "${protocol}". Use file:// or memory://.`);
+  if (protocol === 'valkey:' || protocol === 'valkeys:') return createValkeyStore(new URL(uri));
+  throw new Error(
+    `Unsupported OAuth store scheme "${protocol}". Use file://, valkey:// or memory://.`,
+  );
 };

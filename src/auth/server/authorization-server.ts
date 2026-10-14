@@ -233,18 +233,23 @@ export const createAuthorizationServer = (
 /**
  * Resolve the master secret and open the store, before the HTTP port is bound:
  * a short supplied secret or an unusable store stops startup here. Returns the
- * builder to call once the public URL (issuer) is known.
+ * builder to call once the public URL (issuer) is known, plus `closeStore` for
+ * the transport's shutdown path (a no-op on the local backends).
  */
-export const prepareAuthorizationServer = async (
-  config: Config,
-  logger: Logger = silentLogger,
-): Promise<
+export interface AuthorizationServerBuilder {
   (
     issuer: string,
     isAllowedOrigin: (origin: string) => boolean,
     overrides?: { fetch?: Fetch | undefined },
-  ) => AuthorizationServer
-> => {
+  ): AuthorizationServer;
+  /** Closes the persistent store's socket, if it has one. */
+  closeStore(): Promise<void>;
+}
+
+export const prepareAuthorizationServer = async (
+  config: Config,
+  logger: Logger = silentLogger,
+): Promise<AuthorizationServerBuilder> => {
   const dir = configDir();
   const storeUri = config.oauthStore ?? pathToFileURL(join(dir, 'oauth-store.json')).href;
   const secret = resolveMasterSecret(
@@ -257,8 +262,8 @@ export const prepareAuthorizationServer = async (
     logger,
   );
   const ring = deriveKeyRing(secret.value);
-  const persistent = openStore(storeUri);
-  return (issuer, isAllowedOrigin, overrides = {}) =>
+  const persistent = await openStore(storeUri);
+  const build: AuthorizationServerBuilder = (issuer, isAllowedOrigin, overrides = {}) =>
     createAuthorizationServer({
       config,
       issuer,
@@ -268,4 +273,6 @@ export const prepareAuthorizationServer = async (
       logger,
       fetch: overrides.fetch,
     });
+  build.closeStore = () => persistent.close();
+  return build;
 };

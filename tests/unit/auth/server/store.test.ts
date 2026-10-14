@@ -436,18 +436,18 @@ describe('openStore', () => {
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
   it('opens memory:// in memory, a fresh store each time', async () => {
-    const memory = openStore('memory://');
+    const memory = await openStore('memory://');
     await memory.set('a', '1');
     expect(await memory.get('a')).toBe('1');
-    expect(await openStore('memory://').get('a')).toBeUndefined();
+    expect(await (await openStore('memory://')).get('a')).toBeUndefined();
   });
 
   it('opens file:// as the file at that path, which survives a reopen', async () => {
     const path = join(dir, 'my store.json');
-    const file = openStore(pathToFileURL(path).href);
+    const file = await openStore(pathToFileURL(path).href);
     await file.set('b', '2');
     expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({ b: { v: '2' } });
-    expect(await openStore(pathToFileURL(path).href).get('b')).toBe('2');
+    expect(await (await openStore(pathToFileURL(path).href)).get('b')).toBe('2');
   });
 
   it.each([
@@ -457,10 +457,10 @@ describe('openStore', () => {
     'postgresql://u@h/db',
     'sqlite:///tmp/x.sqlite',
     'ftp://x',
-  ])('rejects %s, naming the schemes it supports', (uri) => {
+  ])('rejects %s, naming the schemes it supports', async (uri) => {
     const scheme = `${new URL(uri).protocol}`;
-    expect(() => openStore(uri)).toThrow(
-      new Error(`Unsupported OAuth store scheme "${scheme}". Use file:// or memory://.`),
+    await expect(openStore(uri)).rejects.toThrow(
+      new Error(`Unsupported OAuth store scheme "${scheme}". Use file://, valkey:// or memory://.`),
     );
   });
 });

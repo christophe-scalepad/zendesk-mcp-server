@@ -415,6 +415,7 @@ export const startHttpTransport = async (
   // Secret and store first: a bad secret or store stops startup before the
   // port is bound.
   const buildAuthorizationServer = await prepareAuthorizationServer(config, logger);
+  const closeStore = buildAuthorizationServer.closeStore;
   let authorizationServer: AuthorizationServer | undefined;
   const sessions = new Map<string, Session>();
   const idleTimeoutMs = options.sessionIdleTimeoutMs ?? SESSION_IDLE_TIMEOUT_MS;
@@ -753,6 +754,8 @@ export const startHttpTransport = async (
       await new Promise<void>((resolve, reject) => {
         httpServer.close((err) => (err ? reject(err) : resolve()));
       });
+      // Last: the store's socket, only once nothing else can touch it.
+      await closeStore();
     },
   };
 };
