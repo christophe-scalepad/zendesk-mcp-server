@@ -12,7 +12,7 @@ import { isStartupError, STARTUP_DOCS } from '../../../../src/utils/startup-erro
 // Live-server coverage runs wherever VALKEY_TEST_URL points at a Valkey
 // (locally: `docker run -p 6379:6379 valkey/valkey`); the rest of the suite
 // stays green serverless.
-const live = process.env.VALKEY_TEST_URL ? describe : describe.skip;
+const live = process.env['VALKEY_TEST_URL'] ? describe : describe.skip;
 
 /** A recording client whose events are fired by hand, so no server is needed. */
 const stubClient = () => {
@@ -47,14 +47,10 @@ const stubClient = () => {
     disconnect: () => {
       calls.push(['disconnect']);
     },
-    on: (event, listener) => {
-      listeners.set(event, [...(listeners.get(event) ?? []), listener]);
-      return client;
-    },
     off: (event, listener) => {
       listeners.set(
         event,
-        (listeners.get(event) ?? []).filter((l) => l !== listener),
+        (listeners.get(event) ?? []).filter((l: unknown) => l !== listener),
       );
       return client;
     },
@@ -102,8 +98,8 @@ describe('createValkeyStore', () => {
       lazyConnect: false,
       maxRetriesPerRequest: null,
     });
-    expect((options.retryStrategy as (times: number) => number | null)(1)).toBe(200);
-    expect((options.retryStrategy as (times: number) => number | null)(3)).toBeNull();
+    expect((options['retryStrategy'] as (times: number) => number | null)(1)).toBe(200);
+    expect((options['retryStrategy'] as (times: number) => number | null)(3)).toBeNull();
   });
 
   it('maps the record contract onto GET, SET and DEL', async () => {
@@ -162,7 +158,7 @@ describe('openStore with a valkey URI', () => {
 });
 
 live('against a live Valkey', () => {
-  const uri = process.env.VALKEY_TEST_URL as string;
+  const uri = process.env['VALKEY_TEST_URL'] as string;
 
   it('stores, reads and deletes records', async () => {
     const store = await openStore(uri);
