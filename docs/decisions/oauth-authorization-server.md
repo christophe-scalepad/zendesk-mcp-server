@@ -239,10 +239,13 @@ Instead:
 
 ### Storage
 
-- **One file, no storage library.** `--oauth-store <uri>` takes `file://` (the
-  default) or `memory://` (dev and tests). The file store is ours: atomic writes
-  (tmp + rename), owner-only permissions, expired records dropped, and a refusal
-  to start on a corrupt file rather than a silent reset.
+- **One file by default; Valkey added later.** `--oauth-store <uri>` takes
+  `file://` (the default), `valkey://` / `valkeys://` (TLS), or `memory://`
+  (dev and tests). The file store is ours: atomic writes (tmp + rename),
+  owner-only permissions, expired records dropped, and a refusal to start on a
+  corrupt file rather than a silent reset. The Valkey store maps the same
+  contract onto GET / SET ... PX / DEL over iovalkey, connects before the port
+  binds, and closes its socket with the transport.
 - **Keyv was dropped.** It was first chosen for pluggable backends (Redis,
   Postgres, SQLite), but its file backend, `keyv-file`, has none of the three
   guarantees above: a crash can truncate the file, which it then reads as empty,
@@ -250,7 +253,8 @@ Instead:
   pass-through, so it went, and its adapter loading with it.
 - **A backend added later** implements `RecordStore` (`get`, `set` with a TTL,
   `delete`, in `src/auth/server/file-store.ts`) and nothing else: the sealing,
-  hashing and indexing sit above it.
+  hashing and indexing sit above it. The Valkey backend
+  (`src/auth/server/valkey-store.ts`) is the first to do so.
 - **CIMD documents' last good copies** are a sealed collection of their own
   (`CimdDocument`, keyed by `client_id`), next to the Zendesk tokens and the
   consent memory, outside the `oidc-provider` adapter.

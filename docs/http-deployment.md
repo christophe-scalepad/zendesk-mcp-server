@@ -106,7 +106,7 @@ Zendesk.
 | | Default | For a deployment |
 |---|---|---|
 | **Master secret** | Generated on first start into `oauth-master-secret` (mode 0600) in the config directory | `OAUTH_MASTER_SECRET` from a secret manager (e.g. a Key Vault reference on Azure Container Apps), or `--oauth-master-secret-file` |
-| **Grant store** | `file://<config dir>/oauth-store.json` | `--oauth-store file:///data/oauth-store.json` on a persistent volume |
+| **Grant store** | `file://<config dir>/oauth-store.json` | `--oauth-store file:///data/oauth-store.json` on a persistent volume, or a Valkey server: `--oauth-store valkey://user:password@valkey:6379/0` (`valkeys://` for TLS) |
 
 - **Generate a secret** with `openssl rand -base64 32`. Anything under 32 bytes
   is refused at startup.
@@ -115,12 +115,17 @@ Zendesk.
   an auto-generated secret sits next to a file store.
 - **Keep both across redeploys.** With the same secret and store, a restart or a
   redeploy logs nobody out. Lose either and every user signs in again.
-- **A file is the only persistent store.** `memory://` keeps everything in
-  memory, for tests only.
-- **One instance only.** Several replicas sharing a store are not supported.
-  That holds for 2026-07-28 clients too, although each of their requests gets a
-  fresh server: their caches and listen streams live in this process (see
-  [Protocol revisions](#protocol-revisions)).
+- **A file or a Valkey server.** `memory://` keeps everything in memory, for
+  tests only. A Valkey store (`valkey://`, TLS with `valkeys://`) keeps records
+  on a Redis-compatible server instead of a volume, under the `oauth:` key
+  prefix (`?keyPrefix=` to change it); records are still encrypted at rest, so
+  the server holding them stays unreadable without the master secret.
+- **One instance only.** Several replicas sharing a store are not supported: a
+  Valkey store makes records survive restarts and redeploys on the same host,
+  but single-use refresh tokens still rely on an in-process lock, which does
+  not span replicas. That holds for 2026-07-28 clients too, although each of
+  their requests gets a fresh server: their caches and listen streams live in
+  this process (see [Protocol revisions](#protocol-revisions)).
 
 ### Rotating the secret
 
