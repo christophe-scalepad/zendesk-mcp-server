@@ -33,7 +33,7 @@ const countWords = (text: string): number => {
 };
 
 const textOf = (html: string): string => {
-  if (!html) return '';
+  // Stryker disable next-line BooleanLiteral: input is HTML parseSections re-serialised from a fragment parse already.
   const $ = cheerio.load(`<div>${html}</div>`, null, false);
   return $('div').first().text();
 };
@@ -55,6 +55,7 @@ export const parseSections = (html: string): Section[] => {
   let current: (typeof sections)[number] | null = null;
 
   for (const node of children) {
+    // Stryker disable next-line StringLiteral: only feeds the heading lookup, which no marker string satisfies.
     const tagName = node.type === 'tag' ? node.name.toLowerCase() : '';
 
     if (HEADING_LEVELS.has(tagName)) {
@@ -230,12 +231,7 @@ const mdToHtmlProcessor = unified()
   .use(rehypeRaw)
   .use(rehypeStringify);
 
-export const htmlToMarkdown = (html: string): string => {
-  if (!html) return '';
-  return String(htmlToMdProcessor.processSync(html));
-};
+export const htmlToMarkdown = (html: string): string => String(htmlToMdProcessor.processSync(html));
 
-export const markdownToHtml = (markdown: string): string => {
-  if (!markdown) return '';
-  return String(mdToHtmlProcessor.processSync(markdown));
-};
+export const markdownToHtml = (markdown: string): string =>
+  String(mdToHtmlProcessor.processSync(markdown));

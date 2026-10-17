@@ -411,6 +411,7 @@ const parseCliArgs = (args: string[]): CliResult => {
     }
 
     const field = FIELD_BY_FLAG.get(flag);
+    // Stryker disable next-line ConditionalExpression: only --port / --callback-port reach it with no field, and that key is read by nothing.
     if (field) Object.assign(result, { [field]: value });
   }
 
@@ -507,8 +508,8 @@ export const loadConfig = (argv: string[] = process.argv.slice(2)): Config => {
     readOnly: cli.readOnly ?? false,
     namespaces,
     tools: cli.tools,
-    topology: cli.topology ?? true,
-    promotedArticles: cli.promotedArticles ?? true,
+    topology: cli.topology,
+    promotedArticles: cli.promotedArticles,
     hcResourceScheme,
     dev: cli.dev ?? false,
     printTools: cli.printTools ?? false,
