@@ -173,8 +173,12 @@ command at the source and add the flag:
 
 Scope and limits, by design:
 
-- **stdio only.** HTTP builds a fresh server per request, so there is nothing
-  long-lived to hot-swap; the flag is ignored (with a warning) in HTTP mode.
+- **stdio only.** HTTP builds a server per session or per request, so there is
+  nothing long-lived to hot-swap; the flag is ignored (with a warning) in HTTP
+  mode.
+- **A 2026-07-28 client needs an open listen stream** to receive
+  `tools/list_changed`; without one it must call `tools/list` again after a
+  reload (`reload_tools` says so in its answer).
 - **Tool code only.** Reload re-imports the leaf tool modules
   (`src/tools/{tickets,search,help-center,users}.ts`). Edits to shared
   infrastructure below them (the HTTP client, `definitions.ts`, guidance, or the

@@ -44,10 +44,12 @@ web, which generates them: leave those alone, don't imitate the shape by hand.
 
 ## Architecture
 
-Transports: stdio (SDK `StdioServerTransport`) plus a `node:http` HTTP transport
-that wraps `NodeStreamableHTTPServerTransport` next to its own OAuth authorization
-server (`auth/server/`, on `oidc-provider`); HTTP builds a per-session `McpServer`
-so the user's Zendesk token is captured in the tools' closure — no shared state.
+Transports: stdio and a `node:http` HTTP transport next to its own OAuth
+authorization server (`auth/server/`, on `oidc-provider`), both serving MCP 2025
+and 2026-07-28 (`docs/decisions/protocol-eras.md`). The user's Zendesk token is
+captured in the tools' closure — no shared state. A notification carries no
+sensitive data; `requestState` goes only through `utils/request-state.ts`;
+diagnostics go to stderr, never to an MCP logging channel.
 `index.ts` imports each transport lazily, and `dist/` inlines every dependency
 (the package declares none): never statically import the HTTP stack, or a
 package only stdio needs (such as `open`), from a module both transports load —

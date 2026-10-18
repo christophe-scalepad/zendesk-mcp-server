@@ -29,16 +29,19 @@ flow opens a **browser**, which does not work in a headless remote or web
 environment. So for live testing:
 
 - `list` and schema validation work **without any credentials**, no token needed.
-- A real `call` needs a Zendesk OAuth **access token**. Obtain one via the normal
-  OAuth flow (e.g. in a local session where the browser can open), then provide it:
+- A real `call` needs a Zendesk OAuth **access token**. Sign in once through
+  the `zendesk-local` server of `.mcp.json` (call any tool, follow the sign-in
+  link): the stdio server persists the token, and the live scripts
+  (`mcp-live.ts`, `probe-*.ts`) read it through `scripts/live-auth.ts`, with the
+  same silent refresh. Nobody copies the token.
+- Where no sign-in can happen (a remote web session), inject
+  `ZENDESK_SUBDOMAIN` and `ZENDESK_OAUTH_TOKEN` in the environment
+  configuration (not committed); the scripts prefer them when set.
 
-  ```bash
-  ZENDESK_SUBDOMAIN=<your-subdomain>
-  ZENDESK_OAUTH_TOKEN=<oauth-access-token>
-  ```
-
-In a Claude Code web environment, inject these as environment variables in the
-environment configuration (not committed).
+**Agents never handle the token.** No reading the token file, no echoing or
+exporting it, no `curl` to Zendesk: the session security classifier blocks
+that, and a human has to step in. Use the MCP tools, `pnpm mcp:live`, or a
+probe script — each resolves the credential itself.
 
 ## A. `.mcp.json`: live tools inside a session
 
@@ -64,8 +67,8 @@ A project-scoped `.mcp.json` is committed at the repo root:
   directly. Drop it for the default `namespace` mode, or pass
   `--read-only` / `--namespace <ns>` to scope the surface.
 - `ZENDESK_SUBDOMAIN` is set in the file (`fruggr`) since it is not a secret;
-  the OAuth access token (`ZENDESK_OAUTH_TOKEN`) still comes from the environment
-  (see auth note above) and is never stored in the file.
+  the token comes from the sign-in on first call and is persisted outside the
+  repo (see auth note above), never in the file.
 
 MCP servers are connected at **session startup**, not hot-reloaded. So: commit
 `.mcp.json` to the branch, then open a **new** Claude Code session on that
@@ -86,10 +89,21 @@ pnpm mcp:live call get_ticket '{"ticket_id": 123}' -- --mode all
 
 # Read a resource (needs creds — fetched with the caller's token)
 pnpm mcp:live read zendesk-hc://topology -- --mode all
+
+# Pick the protocol era (default 2025); the negotiated revision goes to stderr
+pnpm mcp:live list --era 2026 -- --mode all
+pnpm mcp:live list --era auto -- --mode all
+
+# Drive a running HTTP server instead: signs in through its OAuth flow once
+# (prints the URL to open), then reuses the cached tokens
+pnpm mcp:live list --url http://localhost:3000/mcp --era 2026
+pnpm mcp:live list --url http://localhost:3000/mcp --read-only-scope
+pnpm mcp:live probe-unauth --url http://localhost:3000/mcp   # status + WWW-Authenticate
 ```
 
-It links a real MCP `Client` to the server over an in-memory transport
-(identical to `tests/integration/stdio-harness.ts`), so `tools/list`,
+Without `--url`, it links a real MCP `Client` to the server over an in-memory
+transport, through the same `startStdioTransport` as the binary (identical to
+`tests/integration/stdio-harness.ts`), so `tools/list`,
 `tools/call`, `resources/list` and `resources/read` cross the wire and dispatch
 through the genuine handlers. Use it for quick manual checks, or as a basis for
 scripted or CI assertions.
