@@ -1,3 +1,29 @@
+## [3.4.0](https://github.com/fruggr/zendesk-mcp-server/compare/v3.3.1...v3.4.0) (2026-10-18)
+
+### Features
+
+* serve the MCP 2026-07-28 revision on both transports ([#394](https://github.com/fruggr/zendesk-mcp-server/issues/394)) ([53b6ab2](https://github.com/fruggr/zendesk-mcp-server/commit/53b6ab2cb53cd17961bfdf24d450482ab06776d1)), closes [#392](https://github.com/fruggr/zendesk-mcp-server/issues/392), references [#387](https://github.com/fruggr/zendesk-mcp-server/issues/387) [#393](https://github.com/fruggr/zendesk-mcp-server/issues/393)
+
+<details>
+<summary>🔧 Internal changes (chore, ci, build, refactor, tests, docs…)</summary>
+
+### Chores
+
+* **deps:** lock file maintenance ([#383](https://github.com/fruggr/zendesk-mcp-server/issues/383)) ([717f0d3](https://github.com/fruggr/zendesk-mcp-server/commit/717f0d3c717738f723f31c29b4ca0a050e6396a8))
+* **deps:** update dependency @biomejs/biome to v2.5.15 ([#373](https://github.com/fruggr/zendesk-mcp-server/issues/373)) ([674e69f](https://github.com/fruggr/zendesk-mcp-server/commit/674e69f5756074a19982d4565629d49b38816bda))
+* **deps:** update pnpm to v12.11.2 ([#381](https://github.com/fruggr/zendesk-mcp-server/issues/381)) ([3052db9](https://github.com/fruggr/zendesk-mcp-server/commit/3052db955db04f5ef04210c2127c53826ea1e7e6))
+* **deps:** update pnpm to v12.12.1 ([#386](https://github.com/fruggr/zendesk-mcp-server/issues/386)) ([a385ebd](https://github.com/fruggr/zendesk-mcp-server/commit/a385ebd86fc85637684826601a4064df490f6604))
+
+### Tests
+
+* pin the tools/list surface per namespace and triage the mutation scope to zero escaped ([#385](https://github.com/fruggr/zendesk-mcp-server/issues/385)) ([5f516bf](https://github.com/fruggr/zendesk-mcp-server/commit/5f516bf38be161722459cd9d0b468645d819f0fc)), references [#212](https://github.com/fruggr/zendesk-mcp-server/issues/212) [#208](https://github.com/fruggr/zendesk-mcp-server/issues/208) [#212](https://github.com/fruggr/zendesk-mcp-server/issues/212) [#309](https://github.com/fruggr/zendesk-mcp-server/issues/309)
+
+### Continuous Integration
+
+* **release:** detect a cut release by its tag, and add a manual catch-up run ([#378](https://github.com/fruggr/zendesk-mcp-server/issues/378)) ([e3a27c2](https://github.com/fruggr/zendesk-mcp-server/commit/e3a27c218cfa1a9c27270578f019a1f444e9bc7b))
+* **release:** remove the manual catch-up run, retry semantic-release's git pushes ([#382](https://github.com/fruggr/zendesk-mcp-server/issues/382)) ([5020ded](https://github.com/fruggr/zendesk-mcp-server/commit/5020ded739efcf7e64f313022d03dcf87c774f1d)), references [#378](https://github.com/fruggr/zendesk-mcp-server/issues/378)
+</details>
+
 ## [3.3.1](https://github.com/fruggr/zendesk-mcp-server/compare/v3.3.0...v3.3.1) (2026-10-14)
 
 ### Bug Fixes
