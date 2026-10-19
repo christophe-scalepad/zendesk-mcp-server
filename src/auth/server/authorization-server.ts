@@ -16,6 +16,7 @@ import { resolveMasterSecret } from './secret';
 import { createAdapterFactory, createSealedCollection, openStore } from './store';
 import { type Fetch, trustedClientSet } from './trusted-clients';
 import type { ZendeskTokenSet } from './upstream';
+import { spliceValkeyPassword } from './valkey-password';
 import { createZendeskGrants, ZENDESK_REFRESH_MARGIN_MS } from './zendesk-grant';
 
 export interface VerifiedAccessToken {
@@ -251,7 +252,11 @@ export const prepareAuthorizationServer = async (
   logger: Logger = silentLogger,
 ): Promise<AuthorizationServerBuilder> => {
   const dir = configDir();
-  const storeUri = config.oauthStore ?? pathToFileURL(join(dir, 'oauth-store.json')).href;
+  const rawStoreUri = config.oauthStore ?? pathToFileURL(join(dir, 'oauth-store.json')).href;
+  // A valkey:// URI takes its password from OAUTH_VALKEY_PASSWORD (a Secret via
+  // envFrom), never inline: the OAUTH_STORE value lives in the Deployment spec,
+  // where an inline password would be plain text in kubectl describe output.
+  const storeUri = spliceValkeyPassword(rawStoreUri);
   const secret = resolveMasterSecret(
     {
       value: config.oauthMasterSecret,

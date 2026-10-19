@@ -119,7 +119,9 @@ Zendesk.
   tests only. A Valkey store (`valkey://`, TLS with `valkeys://`) keeps records
   on a Redis-compatible server instead of a volume, under the `oauth:` key
   prefix (`?keyPrefix=` to change it); records are still encrypted at rest, so
-  the server holding them stays unreadable without the master secret.
+  the server holding them stays unreadable without the master secret. The
+  password travels its own `OAUTH_VALKEY_PASSWORD` env var (a Kubernetes
+  Secret), never the URI itself.
 - **One instance only.** Several replicas sharing a store are not supported: a
   Valkey store makes records survive restarts and redeploys on the same host,
   but single-use refresh tokens still rely on an in-process lock, which does

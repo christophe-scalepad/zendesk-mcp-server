@@ -365,12 +365,21 @@ Where grants, refresh tokens and registered clients are kept, encrypted (also
 `memory://` for tests. **HTTP only.**
 
 A Valkey URI is `valkey://[user[:password]@]host[:port][/db]` (any
-Redis-compatible server works); `valkeys://` connects over TLS. Records land
-under the `oauth:` key prefix, overridable with `?keyPrefix=<prefix>` so one
-server can host unrelated namespaces. The server connects at startup: an
-unreachable server stops it with an operator-facing error rather than failing
-the first sign-in. See
+Redis-compatible server works); `valkeys://` connects over TLS. Set the
+password through `OAUTH_VALKEY_PASSWORD` instead of the URI (see below) — an
+inline password is rejected. Records land under the `oauth:` key prefix,
+overridable with `?keyPrefix=<prefix>` so one server can host unrelated
+namespaces. The server connects at startup: an unreachable server stops it
+with an operator-facing error rather than failing the first sign-in. See
 [Master secret and grant store](http-deployment.md#master-secret-and-grant-store).
+
+### `OAUTH_VALKEY_PASSWORD`
+**Required:** only with a `valkey://` / `valkeys://` `OAUTH_STORE` · **Default:** none
+
+Password for the Valkey server, spliced into the store URI at startup. Kept
+out of `OAUTH_STORE` so the URI (visible in deployment manifests and process
+listings) never carries a credential; an inline password in the URI is a
+startup error. **HTTP only.**
 
 ### `OAUTH_TRUSTED_CLIENTS`
 **Required:** no · **Default:** none (claude.ai and ChatGPT are built in)
